@@ -1,0 +1,31 @@
+#!/bin/sh
+
+./adb -s ${PWD##*/} root
+sleep 2
+		echo "---------------------------------------------"
+		echo "---------------------------------------------" >> $PVTlog.txt
+		
+echo "Cpu info:"
+#echo "user | nice | system | idle | iowait | irq | softirq | steal | guest | guest_nice"
+#./adb shell cat /proc/stat | grep "cpu0"
+#./adb shell cat /proc/stat | grep "cpu1"
+#./adb shell cat /proc/stat | grep "cpu2"
+#./adb shell cat /proc/stat | grep "cpu3"
+#./adb shell cat /proc/stat | grep "cpu0" >> $PVTlog.txt
+#./adb shell cat /proc/stat | grep "cpu1" >> $PVTlog.txt
+#./adb shell cat /proc/stat | grep "cpu2" >> $PVTlog.txt
+#./adb shell cat /proc/stat | grep "cpu3" >> $PVTlog.txt
+#echo ${PWD##*/}
+./adb -s ${PWD##*/} shell cat proc/cpuinfo
+./adb -s ${PWD##*/} shell cat proc/cpuinfo >> $PVTlog.txt
+#./adb shell dumpsys cpuinfo | grep "Load:" | awk '{print $2 "\t" $4 "\t" $6}'
+#./adb shell dumpsys cpuinfo | grep "Load:" | awk '{print $4}'
+#./adb shell dumpsys cpuinfo | grep "Load:" | awk '{print $6}'
+
+#./adb shell dumpsys cpuinfo | grep "Load:"
+#./adb shell dumpsys cpuinfo | grep "Load:"  >> $PVTlog.txt
+		echo "---------------------------------------------"
+		echo "---------------------------------------------" >> $PVTlog.txt
+		
+#./adb shell dumpsys cpuinfo | grep "Load:" | awk 'NR==1{print #totall = $2*100}' 
+

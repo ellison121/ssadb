@@ -1,0 +1,67 @@
+#!/bin/sh
+sleep 1
+./adb -s ${PWD##*/} root
+sleep 2
+
+if [ -z "$(./adb -s ${PWD##*/} shell ls /data/app/ | grep "etdlock")" ]; then
+	echo "there is no tool, we are going to install"
+	echo 'there is no tool, we are going to install' >> $PVTlog.txt 
+	./adb -s ${PWD##*/} install ETDLock.apk
+	#sleep 3
+	./adb -s ${PWD##*/} shell pm enable com.hp.etd.etdlock
+	echo "etdlock installation completed"
+	echo 'etdlock installation completed' >> $PVTlog.txt
+else
+	echo "etdlock exists"
+	echo 'etdlock exists' >> $PVTlog.txt
+fi
+		
+		###########################################
+		##	 Standby test by apk 		 ##
+		###########################################
+                # sleep 10
+                ###########################################
+                ## Standby for 5 secs and resume
+                ###########################################
+                #flag=Standbylength
+		#while [ $((flag)) -lt 3 ]; do
+		#	echo "Please input the great or equal 3 (sec)"
+		#	read Standbylength
+		#	if [ $(( Standbylength )) -ge 3 ]; then
+		#	break;
+		#	fi
+		#done
+		if [ "$(./adb -s ${PWD##*/} shell cat /system/build.prop | grep -o HP_Slate7)" == "HP_Slate7" ]; then
+			rdcfg=cfgs7
+			readfile $rdcfg
+		elif [ "$(./adb -s ${PWD##*/} shell cat /system/build.prop | grep ro.product.name=wolverine | tr -d '\r')" == 		"ro.product.name=wolverine" ]; then
+			rdcfg=cfgw
+			readfile $rdcfg
+		else
+			rdcfg=cfg
+			readfile $rdcfg
+		fi
+		echo $Standbylength > ETL_Lock_Config.txt 
+		#echo "write $Standbylength into sdcard txt "
+		#echo "$(./adb -s ${PWD##*/} shell cat sdcard/ETDLock/config/ETL_Lock_Config.txt)"
+		./adb -s ${PWD##*/} push ETL_Lock_Config.txt /sdcard/ETDLock/config/ETD_Lock_Config.txt > /dev/null 2>&1
+
+		./adb -s ${PWD##*/} shell am force-stop com.hp.etd.etdlock > /dev/null 2>&1
+		for (( s=1; s<=$Standbytimes; s=s+1 ))
+		do
+			echo "---------------------------------------------"
+			echo '---------------------------------------------' >> $PVTlog.txt
+			echo "This is $s th standby"
+			echo 'This is '$s' th standby' >> $PVTlog.txt
+			./adb -s ${PWD##*/} shell date +"%m-%d-%y_%T" >> $PVTlog.txt
+			echo "System is now standby for $Standbylength sec(s)..."
+			echo 'System is now standby for '$Standbylength' sec(s)...' >> $PVTlog.txt 
+			./adb -s ${PWD##*/} shell am start -n com.hp.etd.etdlock/com.hp.etd.etdlock.ETDAdminActivity > /dev/null 2>&1
+		        sleep $((Standbylength+3))  #Wait for completion of standby
+		        ./adb -s ${PWD##*/} shell am force-stop com.hp.etd.etdlock > /dev/null 2>&1
+			echo "System has returned from standby."
+			echo 'System has returned from standby.' >>$PVTlog.txt	
+			#echo "---------------------------------------------"
+			#echo '---------------------------------------------' >> $PVTlog.txt
+		done
+#exit 0

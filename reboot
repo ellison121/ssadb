@@ -1,0 +1,16 @@
+#!/bin/sh
+./adb -s ${PWD##*/} root
+sleep 2
+for (( r=1; r<=$Reboottimes; r=r+1 ))
+do
+#	s=$(($s+$i))
+		echo "---------------------------------------------"
+		echo '---------------------------------------------' >> $PVTlog.txt
+echo "This is $r th reboot"
+echo 'This is '$r' th reboot' >> $PVTlog.txt
+./adb -s ${PWD##*/} shell date +"%m-%d-%y_%T" >> $PVTlog.txt
+./adb -s ${PWD##*/} reboot
+echo "wait for device..."
+echo 'wait for device...' >> $PVTlog.txt
+./adb -s ${PWD##*/} wait-for-device
+done

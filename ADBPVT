@@ -1,0 +1,275 @@
+#!/bin/sh
+if [ "$(ls -l /bin/sh | grep "dash")" == "dash" ]; then
+	echo "reconfig to shell environment:"
+	#echo "Please press *****NO*****, when system ask you use dash as the default system shell(/bin/sh)?"
+	#sleep 3
+	#dash is for boot up quickly, so we should change to bash
+	sudo dpkg-reconfigure -f noninteractive dash
+	#sudo dpkg-reconfigure dash   #press "NO"
+else  
+	echo "" 
+fi
+str=$(./adb devices)
+#AndroidTime=$(./adb shell date)
+#echo "deect on devices string ${#str}"
+MAINWINDOW=$(./xdotool getwindowfocus)
+
+
+function checkfile(){
+ver=$( ls | find LinuxMG_*_Arm*.tar.gz | sed -n '$p') 
+folder=$(ls | find LinuxMG_*_Arm*.tar.gz | sed -n '$p' | sed 's/.tar.gz//g')
+if [ "$folder" == "" ]; then 
+	#echo "ADBPVT:@@@folder empty@@@"
+	devfolder=$(./adb -s ${PWD##*/} shell ls /data/local/ | grep LinuxMG) 
+	 folder=$devfolder
+fi
+if [ "$(ls | find LinuxMG_*.tar.gz)" != "" ] && [ "$(./adb -s ${PWD##*/} shell ls /data/local/ | grep LinuxMG)" == "" ]; then
+	tar xzvf $ver
+	#tar xzvf patch.tar.gz
+	#echo "ADBPVT:@@@@@@@@@@@@@ push $folder"
+	./adb -s ${PWD##*/} push $folder /data/local/$folder/ > /dev/null 2>&1	
+	echo "install patch ..."
+	echo 'install patch ...' >> $PVTlog.txt
+	#./adb -s ${PWD##*/} push patch/MG-console /data/local/$folder/ 
+	./adb -s ${PWD##*/} push patch/ /data/local/$folder/ > /dev/null 2>&1	
+	#./adb -s ${PWD##*/} push patch/maya.ini /data/local/$folder/ 
+	#./adb -s ${PWD##*/} push patch/Slate7.ini /data/local/$folder/
+	./adb -s ${PWD##*/} push patch/terminfo /data/local/$folder/terminfo > /dev/null 2>&1	
+	echo "LinuxMG installation completed"
+	echo 'LinuxMG installation completed' >> $PVTlog.txt
+	
+elif [ "$(./adb -s ${PWD##*/} shell ls /data/local/ | grep "LinuxMG")" != "" ]; then
+	echo "LinuxMG exists"
+	echo 'LinuxMG exists' >> $PVTlog.txt
+	#return $devfolder
+else
+	echo \n >> /dev/pts/1
+	echo "*****************************************************************************" >> /dev/pts/1
+	echo "there is no LinuxMG Arm in folder, please download the latest LinuxMG Arm and put into ADBPVT folder" >> /dev/pts/1
+	echo "*****************************************************************************" >> /dev/pts/1
+	echo \n >> /dev/pts/0
+	echo "*****************************************************************************" >> /dev/pts/0
+	echo "there is no LinuxMG Arm in folder, please download the latest LinuxMG Arm and put into ADBPVT folder" >> /dev/pts/0
+	echo "*****************************************************************************" >> /dev/pts/0
+	echo 'there is no LinuxMG Arm in folder, please download the latest LinuxMG Arm and put into ADBPVT folder' >>  $PVTlog.txt
+	sleep 3
+	exit 0
+fi
+}
+#export -f checkfile
+
+
+
+
+
+
+#if devices is alive
+if [ ${#str} -ge 20 ]; then
+	sleep 1 #wait new terminal to ready
+	#using Android system time
+	#PVTlog=$(date +"PVTlog_%m-%d-%y_%T")
+	PVTlog=$(./adb -s ${PWD##*/} shell date +"PVTlog_%m-%d-%y_%T")
+	export PVTlog
+	mkdir $PVTlog > /dev/null 2>&1 
+	#echo "ETD ADBPVT (ver. 1.21)"
+	#echo 'ETD ADBPVT (ver. 1.21)' >> $PVTlog.txt
+
+	#TestSuite=("$1" "$2" "$3" "$4");
+	#echo "TestSuite :${TestSuite[@]}"
+	#echo TestSuite :${TestSuite[@]} >> $PVTlog.txt
+	#echo '-------------------------------------------' >> $PVTlog.txt
+
+	#echo ${Unix[4]}
+	#echo "your parameter has $# testcases "
+	if [ $# -eq 0 ]; then
+		echo "	  ETD ADBPVT_1.21"
+		echo "*** Hewlett-Packard Confidential ***"
+		echo "Usage: ADBPVT [options]"
+		echo " Option:"
+	
+		echo "	-reboot: runs reboot test"
+		echo "	-standby: runs standby test"
+		echo "	-mg: runs mg test"
+		echo "	-mem: runs mem test"
+		echo "                                                 "
+		echo "example:sudo ./Main"		
+		echo "                                                 "		
+	else
+	#elif [ echo $Totallruns == "" ]; then
+		#echo "Using user config? y/n"
+		#read y
+		#if [ "$y"=="y" ] || [ "$y"=="Y" ]; then
+		#. ./cfg
+		#else
+		
+		#read Totallruns
+		#fix read cfg correctly  
+		#readfile cfg  
+		if [ "$(./adb -s ${PWD##*/} shell cat /system/build.prop | grep -o HP_Slate7)" == "HP_Slate7" ]; then
+			rdcfg=cfgs7
+			readfile $rdcfg
+		elif [ "$(./adb -s ${PWD##*/} shell cat /system/build.prop | grep ro.product.name=wolverine | tr -d '\r')" == 		"ro.product.name=wolverine" ]; then
+			rdcfg=cfgw
+			readfile $rdcfg
+		else
+			rdcfg=cfg
+			readfile $rdcfg
+		fi
+		echo "ETD ADBPVT (ver. 1.21)"
+		echo 'ETD ADBPVT (ver. 1.21)' >> $PVTlog.txt
+
+		echo "How many times does the ADBPVT overall test?"
+		echo 'How many times does the ADBPVT overall test?' >> $PVTlog.txt
+		echo $Totallruns >> $PVTlog.txt
+
+		#TestSuite=("$1" "$2" "$3" "$4");
+		#reserved 
+		#Unix=("${Unix[@]}" "$4" "$5")
+
+		#echo "TestSuite :${TestSuite[@]}"
+		echo TestSuite :$TestSuite >> $PVTlog.txt
+		echo '-------------------------------------------' >> $PVTlog.txt		
+
+		echo "call readfile $Ini"
+		
+		#echo "ADBPVT/Totallruns: $Totallruns"
+		for (( t=1; t<=Totallruns; t=t+1))
+		do
+			for (( a=0; a<$#; a=a+1 ))
+			do
+			case ${TestSuite[a]} in
+				mem) echo "" 
+					;;
+				standby) 
+					until [ "$Standbytimes" != "" ]
+					do
+						echo "How many times do you want to standby"
+						echo 'How many times do you want to standby' >> $PVTlog.txt
+						read Standbytimes
+						echo $Standbytimes >> $PVTlog.txt
+					done
+					
+					until [ $(( Standbylength )) -ge 3 ]
+					do
+						echo "How long does Standby test run each cycle, minimum 3 (sec)"
+						echo 'How long does Standby test run each cycle, minimum 3 (sec)' >> $PVTlog.txt
+						read Standbylength
+						echo $Standbylength >> $PVTlog.txt
+					done
+					echo "" ;; 																									
+				reboot) 
+					until [ "$Reboottimes" != "" ]
+					do
+						echo "How many times do you want to reboot"
+						echo 'How many times do you want to reboot' >> $PVTlog.txt
+						read Reboottimes
+						echo $Reboottimes >> $PVTlog.txt
+					done
+					echo "" ;;
+				mg)
+					until [ "$MGruns" != "" ]
+					do
+						echo "How many times do you want to run MG"
+						echo 'How many times do you want to run MG' >> $PVTlog.txt
+						read MGruns
+						echo $MGruns >> $PVTlog.txt
+					done
+
+
+					until [ "$MGtimes" != "" ]
+					do
+						echo "How long does MG execute each cycle (sec)"
+						echo 'How long does MG execute each cycle (sec)' >> $PVTlog.txt
+						read MGtimes 
+						echo $MGtimes >> $PVTlog.txt
+					done   
+					echo "" ;;
+				*) echo "INVALID NUMBER!" ;;
+
+			esac
+			done
+
+			for (( j=0; j<$#; j=j+1 ))
+			do
+			echo "*********************************************"
+			echo '*********************************************' >> $PVTlog.txt
+			echo "This is $t th run of ADBPVT"
+			echo 'This is '$t' th run of ADBPVT' >> $PVTlog.txt
+			echo "*********************************************"
+			echo '*********************************************' >> $PVTlog.txt
+			#case ${TestSuite[j]} in
+			#echo "case $TestSuite"
+			arr=$(echo $TestSuite | tr "," "\n")
+			for x in $arr
+			do
+			 	#echo "> $x"
+			
+				case $x in
+					mem) 	 
+					#	. ./cpuusage
+						echo "run mem"  	
+						./mem ;;		
+					standby)
+					#	./cpuusage
+						 echo "run standby" 
+						 ./standby ;;
+					reboot) 
+					#	. ./cpuusage
+						echo "run reboot" 
+						 ./reboot ;;
+					mg)
+					#	. ./cpuusage
+					 	echo "run mg" 
+						echo "check mg file"
+						#check in Main in constant ew
+						echo "@@@@@@@@ no check"
+						#checkfile 
+						 ./mg ;;
+					cpu)
+						 ./cpuusage ;;
+					
+					
+					5) echo "five" ;;
+					6) echo "six" ;;
+					7) echo "seven" ;;
+					8) echo "eight" ;;
+					9) echo "nine" ;;
+					10) echo "ten" ;;
+					*) echo "INVALID NUMBER!" ;;
+				esac
+			done
+		done
+		done #end of total run
+		removefolder=$(ls | grep LinuxMG | sed -n '$p'| sed 's/.tar.gz//g')
+		if [ "$removefolder" == "" ]; then
+			devfolder=$(./adb -s ${PWD##*/} shell ls /data/local/ | grep LinuxMG) 
+			removefolder=$devfolder
+		fi
+		echo "remove folder@@@ $removefolder @@@" 
+		sleep 5
+		./adb -s ${PWD##*/} root
+		sleep 3
+		./adb -s ${PWD##*/} shell rm -r /data/local/$removefolder/ > /dev/null 2>&1	
+		./adb -s ${PWD##*/} shell pm disable com.hp.etd.etdlock > /dev/null 2>&1	
+		sleep 1
+		./adb -s ${PWD##*/} shell pm uninstall com.hp.etd.etdlock > /dev/null 2>&1	
+		echo "uninstall TestSuite tools"
+		#echo "kill non-mg window"
+		#./xdotool windowactivate $TESTWINDOW
+		#killall -r xterm > /dev/null 2>&1 	#clear all window
+	#fi #end of cfg
+	echo "--------------------------END------------------------------"
+	echo '--------------------------END------------------------------' >> $PVTlog.txt 
+	mv $PVTlog.txt $PVTlog/ 
+	#killall -r xterm > /dev/null 2>&1 #cause problem
+	fi #end of parameter 
+else
+	echo "device is sleeping or lost"	
+fi 
+sleep 3
+./xdotool windowactivate $MAINWINDOW
+./xdotool type 'exit'
+./xdotool keydown --delay 100 KP_Enter
+./xdotool keyup --delay 100 KP_Enter
+exit 0
+

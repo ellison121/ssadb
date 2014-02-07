@@ -1,0 +1,340 @@
+#!/bin/sh
+function checkfile(){
+if [ $1 == "cfg" ] || [ $1 == "cfgs7" ]; then
+		#sleep 5
+		echo "checkfile to push $1"
+		ver=$( ls | find LinuxMG_*_Arm32.tar.gz | sed -n '$p') 
+		folder=$(ls | find LinuxMG_*_Arm32.tar.gz | sed -n '$p' | sed 's/.tar.gz//g')
+	if [ "$folder" == "" ]; then 
+		#echo "Main:@@@folder empty@@@"
+		devfolder=$(./adb -s ${PWD##*/} shell ls /data/local/ | grep LinuxMG) 
+		 folder=$devfolder
+	fi
+	sleep 5
+	#echo "cfg/s7@@@@@@$folder"
+	if [ "$(ls | find LinuxMG_*.tar.gz)" != "" ] && [ "$(./adb -s ${PWD##*/} shell ls /data/local/ | grep LinuxMG)" == "" ]; then
+		tar xzvf $ver
+		chmod 755 $folder/lib/*
+		#tar xzvf patch.tar.gz
+		#echo "@@@@@@@@@@@@@@@@@@@@@push cfg/s7 "
+		./adb -s ${PWD##*/} push $folder /data/local/$folder/ 			#> /dev/null 2>&1	
+		echo "install patch ..."
+		echo 'install patch ...' >> $PVTlog.txt
+		#./adb -s ${PWD##*/} push patch/MG-console /data/local/$folder/ 
+		./adb -s ${PWD##*/} push patch/ /data/local/$folder/ 
+		#./adb -s ${PWD##*/} push patch/maya.ini /data/local/$folder/ 
+		#./adb -s ${PWD##*/} push patch/Slate7.ini /data/local/$folder/
+		./adb -s ${PWD##*/} push patch/terminfo /data/local/$folder/terminfo 	
+		echo "LinuxMG installation completed"
+		echo 'LinuxMG installation completed' >> $PVTlog.txt
+	
+	elif [ "$(./adb -s ${PWD##*/} shell ls /data/local/ | grep "LinuxMG")" != "" ]; then
+		echo "LinuxMG exists"
+		echo 'LinuxMG exists' >> $PVTlog.txt
+		#return $devfolder
+	else
+		echo \n >> /dev/pts/1
+		echo "*****************************************************************************" >> /dev/pts/1
+		echo "there is no LinuxMG Arm in folder, please download the latest LinuxMG Arm and put into ADBPVT folder" >> /dev/pts/1
+		echo "*****************************************************************************" >> /dev/pts/1
+		echo \n >> /dev/pts/0
+		echo "*****************************************************************************" >> /dev/pts/0
+		echo "there is no LinuxMG Arm in folder, please download the latest LinuxMG Arm and put into ADBPVT folder" >> /dev/pts/0
+		echo "*****************************************************************************" >> /dev/pts/0
+		echo 'there is no LinuxMG Arm in folder, please download the latest LinuxMG Arm and put into ADBPVT folder' >>  $PVTlog.txt
+		sleep 3
+		exit 0
+	fi
+elif [ $1 == "cfgw" ]; then
+		#sleep 5
+		echo "checkfile to push $1"
+		ver=$( ls | find LinuxMG_*_x86-64.tar.gz | sed -n '$p') 
+		folder=$(ls | find LinuxMG_*_x86-64.tar.gz | sed -n '$p' | sed 's/.tar.gz//g')
+	if [ "$folder" == "" ]; then 
+		devfolder=$(./adb -s ${PWD##*/} shell ls /data/local/ | grep LinuxMG) 
+		 folder=$devfolder
+	fi
+	#sleep 5
+	#echo "cfgw@@@@@@$folder"
+	if [ "$(ls | find LinuxMG_*.tar.gz)" != "" ] && [ "$(./adb -s ${PWD##*/} shell ls /data/local/ | grep LinuxMG)" == "" ]; then
+		tar xzvf $ver
+		echo "change lib to 755"
+		chmod 755 $folder/lib/*
+		#sleep 5
+		echo "changed 755 lib"
+		#tar xzvf patch.tar.gz
+		#echo "@@@@@@@@@@@@@@@@@@@@@push cfgw "
+		./adb -s ${PWD##*/} push $folder /data/local/$folder 	
+		echo "install patch ..."
+		echo 'install patch ...' >> $PVTlog.txt
+		./adb -s ${PWD##*/} push patch/ /data/local/$folder/
+		./adb -s ${PWD##*/} push patch/terminfo /data/local/$folder/terminfo 
+		echo "LinuxMG installation completed"
+		echo 'LinuxMG installation completed' >> $PVTlog.txt
+	
+	elif [ "$(./adb -s ${PWD##*/} shell ls /data/local/ | grep "LinuxMG")" != "" ]; then
+		echo "LinuxMG exists"
+		echo 'LinuxMG exists' >> $PVTlog.txt
+		#return $devfolder
+	else
+		echo \n >> /dev/pts/1
+		echo "*****************************************************************************" >> /dev/pts/1
+		echo "there is no LinuxMG Arm in folder, please download the latest LinuxMG Arm and put into ADBPVT folder" >> /dev/pts/1
+		echo "*****************************************************************************" >> /dev/pts/1
+		echo \n >> /dev/pts/0
+		echo "*****************************************************************************" >> /dev/pts/0
+		echo "there is no LinuxMG Arm in folder, please download the latest LinuxMG Arm and put into ADBPVT folder" >> /dev/pts/0
+		echo "*****************************************************************************" >> /dev/pts/0
+		echo 'there is no LinuxMG Arm in folder, please download the latest LinuxMG Arm and put into ADBPVT folder' >>  $PVTlog.txt
+		sleep 3
+		exit 0
+	fi
+	
+fi
+
+
+}
+export -f checkfile
+
+function readfile(){
+	filename=$1
+	count=0
+	while read LINE
+	do 
+		let count++
+		echo "$count $LINE"
+		export $LINE
+
+	done < $filename
+}
+export -f readfile
+
+function TypingADBPVT(){
+			#for non-mg window to kill
+			./xdotool type 'export PVTlog' > /dev/null 2>&1	
+			./xdotool keydown --delay 100 KP_Enter
+			./xdotool keyup --delay 100 KP_Enter			
+			./xdotool windowactivate $1
+                        #echo "aaaaaaaa '$1'"
+			sleep 0.5 # Wait TESTWINDOW ready
+                        #./xdotool type '. ./'$2''
+			#echo "S2: $2"
+			#for test
+			./xdotool type 'sudo sh -x rf '$2'' > /dev/null 2>&1	
+			./xdotool keydown --delay 100 KP_Enter
+			./xdotool keyup --delay 100 KP_Enter
+			#./xdotool type '. ./'
+			#./xdotool type ''$2''
+			#./xdotool keydown --delay 100 KP_Enter
+			#./xdotool keyup --delay 100 KP_Enter
+			sleep 0.5 # Wait TESTWINDOW ready
+			#TestSuite=("mg" "mem");
+			#./xdotool type './ADBPVT ${TestSuite[@]}'
+			#for debug ew
+			#./xdotool type 'echo '$Totallruns' '$MGtimes''
+			#./xdotool keydown --delay 100 KP_Enter
+			#./xdotool keyup --delay 100 KP_Enter
+			./xdotool type './ADBPVT '$TestSuite''
+                        #echo "bbbbbbb '${TestSuite[@]}'"
+			./xdotool keydown --delay 100 KP_Enter
+			./xdotool keyup --delay 100 KP_Enter
+			
+}
+
+UnitFolders=();
+TESTWINDOWs=();
+Inis=();
+TestTargets=();
+#for (( hwd=5; hwd<20; hwd=hwd+2 ))
+#do
+#	TestTargets=(${TestTargets[@]} $(echo $(./adb devices) | awk '{print $hwd}'))
+#	sleep 10
+#	echo "@@@TestTargets: ${TestTargets[@]} @@@"	
+#	echo "\n"	
+#done
+#sleep 30
+#Inis=(${Inis[@]} cfgw)
+	units=$(./adb devices | grep -o device | wc -l)
+	us=$(($units-1))
+	echo "$us test units"
+	#echo "How many test units:"
+	#read testunit
+	a=5
+	for (( tu=0; tu<$us; tu=tu+1 ))
+	do		
+		element=$(echo $(./adb devices) | awk -v k=$a '{print $k}')
+		TestTargets=("${TestTargets[@]}" "$element")
+		a=$(($a+2))
+		#echo "aaaaaaaa=$a"
+		echo "@@@TestTargets: ${TestTargets[@]} -------"
+		sleep 7
+	done
+	#TestTargets[0]=$(echo $(./adb devices) | awk '{print $5}')
+	#TestTargets[1]=$(echo $(./adb devices) | awk '{print $7}')
+	#TestTargets[2]=$(echo $(./adb devices) | awk '{print $9}')
+	#TestTargets[4]=$(echo $(./adb devices) | awk '{print $11}')
+#echo "@@@TestTargets: ${TestTargets[@]} @@@"
+
+	sudo echo "" > /dev/shm/traffic.txt
+	#for (( Maya=0; Maya<${#TestTargets[@]}; Maya=Maya+1 ))
+	for (( Maya=0; Maya<$us; Maya=Maya+1 ))
+	do
+		#for test 
+		
+		#rm -r ${TestTargets[Maya]} > /dev/nrull 2>&1 # for testing purpose
+		#stamp=$(date +"-%m-%d-%y_%T")
+		#mkdir ${TestTargets[Maya]}$stamp > /dev/nrull 2>&1
+		mkdir ${TestTargets[Maya]} > /dev/nrull 2>&1
+		#for deployment
+		UnitFolders[Maya]=${TestTargets[Maya]}
+		echo "@@@@Start ${UnitFolders[Maya]} Test units @@@"  
+		cp -pr ./package/* ${TestTargets[Maya]} #for hardcode slate7
+		sleep 3
+		#rer= ./adb -s ${UnitFolders[Maya]} shell cat /system/build.prop | grep ro.product.name=wolverine | tr -d '\r'
+		if [ "$(./adb -s ${UnitFolders[Maya]} shell cat /system/build.prop | grep ro.product.name=wolverine | tr -d '\r')" == "ro.product.name=wolverine" ]; then
+			echo "copy the correct MG build to folder ${UnitFolders[Maya]}"
+			#cp ./package/LinuxMG_2.610_x86-64.tar.gz ${UnitFolders[Maya]}
+			cd ${UnitFolders[Maya]}
+			rm LinuxMG_*_Arm*  > /dev/null 2>&1
+			#sleep 5
+			cd ..
+		else
+			cd ${UnitFolders[Maya]}
+			rm LinuxMG_*_x86*  > /dev/null 2>&1
+			#sleep 5
+			cd ..
+		
+		fi
+		#echo "@@@@@@@@@@@@@@@@@@@@@@@"
+		sleep 3
+		
+		#cp cfg ${TestTargets[Maya]}  # for 1.20a
+		
+		   # for temp test
+		#echo ${TestTargets[Maya]}
+		#cd ${TestTargets[Maya]}
+		#./adb -s ${TestTargets[Maya]} reboot
+		#	 ./ADBPVT #${TestTargets[Maya]}
+		#cd .. 
+	
+		#echo "@@@@@@@@@@@@@@@@UnitFolders:"
+		
+	done
+	cp ./package/cfgs7 .
+	cp ./package/cfg .
+	cp ./package/cfgw .
+	echo "	  ETD ADBPVT_1.21"
+		echo "*** Hewlett-Packard Confidential ***"
+		echo "Usage: ADBPVT [options]"
+		echo " Option:"
+	
+		echo "	-reboot: runs reboot test"
+		echo "	-standby: runs standby test"
+		echo "	-mg: runs mg test"
+		echo "	-mem: runs mem test"
+		echo "                                                 "
+		echo "example:sudo ./Main"		
+		echo "           					"
+	echo "set up test items:"
+		#read testitems
+		#source ./cfg
+	foo=0
+	curfolder=$(pwd)
+	for f in ${UnitFolders[@]}
+	do
+		#cp ./cfg ./$f
+		
+		echo "target: $f"
+		cd $f
+			#for (( t=1; t<=Totallruns; t=t+1))
+			#do
+			
+				#if [ $foo -eq 2 ]; then 
+				#cd $curfolder
+				#fi
+				xterm&
+				sleep 1
+				TESTWINDOW=$(./xdotool getactivewindow)	
+				if [ "$(./adb -s $f shell cat /system/build.prop | grep -o HP_Slate7)" == "HP_Slate7" ]; then
+					Inis=("${Inis[@]}" "cfgs7")
+				elif [ "$(./adb -s $f shell cat /system/build.prop | grep wolverine)" != "" ]; then
+					Inis=("${Inis[@]}" "cfgw")
+				else
+					Inis=("${Inis[@]}" "cfg")
+				fi
+				#for ((w=0; w<${#TestSuite[@]}; w=w+1 ))
+				#do
+				#	case ${TestSuite[w]} in
+				#	mg)
+						#echo "@@@@@@@@@@@@@@@@UnitFolders:"
+						echo  $f
+						echo "*******$TestSuite***********"
+						#echo $TestSuite | grep '^mg' 
+							#checkfile
+					readfile ${Inis[foo]}
+					if [ "$(echo $TestSuite | grep -o 'mg')" == "mg" ]; then
+						echo "@@@@@@@@@ TestSuite has mg, so check file ${Inis[foo]} @@@@"
+						checkfile ${Inis[foo]}
+						sleep 5
+					fi         
+					foo=$foo+1	
+				#	esac
+				#done
+				
+				
+				TESTWINDOWs=(${TESTWINDOWs[@]} $(./xdotool getactivewindow))	
+				echo "test windows: $TESTWINDOWs"
+				sleep 1
+				#TypingMG $TESTWINDOW
+				
+			
+
+			#done
+		cd ..
+ 	#for debug
+	echo "test windows arrary: '${TESTWINDOWs[@]}'" 
+	echo "lenght of array: '${#TESTWINDOWs[@]}'"
+	#echo "TestSuite: '${#TestSuite[@]}'"
+	done
+        
+	
+
+	for (( j=0; j<${#TESTWINDOWs[@]}; j=j+1 ))
+	do
+		#cd ${UnitFolders[j]}
+			#for ((w=0; w<${#TestSuite[@]}; w=w+1 ))
+			#do
+				#case ${TESTWINDOWs[j]} in
+					#${TESTWINDOWs[j]})
+						#case ${TestSuite[w]} in
+						#	mg) 
+								#readfile ${Inis[j]}  #for debug ew
+								
+								#if [ "$(echo $TestSuite | grep -o '^mg')" == "mg" ]; then
+									#checkfile
+								#fi 
+								TypingADBPVT  ${TESTWINDOWs[j]} ${Inis[j]} j  
+								#TypingMG ${TESTWINDOWs[j]} ;;
+						#	standby) 
+								#. ./standby ;;
+						#	mem) 	
+								#TypingMem ${TESTWINDOWs[j]} ;;
+						#	reboot) 
+								#. ./reboot ;;
+						#	*) echo "INVALID NUMBER!" ;;
+						#esac 
+						#echo "" ;;
+					
+						#echo "" ;;
+					#*) echo "INVALID NUMBER!" ;;
+				#esac 
+
+			#done
+		#cd ..
+
+	done
+	#echo "remove cfg in root folder"
+	rm ./cfgs7 > /dev/null 2>&1	
+	rm ./cfg > /dev/null 2>&1	
+	rm ./cfgw > /dev/null 2>&1
+#exit 0
