@@ -1,4 +1,4 @@
 ssadb
 =====
 
-shell scripting on android debug bridge
+Shell scripting under Unix/Ubuntu for Android testing
